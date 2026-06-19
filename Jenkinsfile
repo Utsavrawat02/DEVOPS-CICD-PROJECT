@@ -32,10 +32,12 @@ pipeline {
                     mkdir -p reports
                     docker rm -f lint_run 2>/dev/null || true
                     docker create --name lint_run ${DEV_IMAGE} \
-                        flake8 app.py calculator.py --output-file=/app/reports/flake8.txt
-                    docker start -a lint_run 
+                        flake8 app.py calculator.py 
+                    docker start -a lint_run | tee reports/flake8.txt
+                    LINT_EXIT=${PIPESTATUS[0]}
                     docker cp lint_run:/app/reports/flake8.txt reports/flake8.txt 
                     docker rm lint_run  
+                    exit $LINT_EXIT
                 '''
             }
         }
