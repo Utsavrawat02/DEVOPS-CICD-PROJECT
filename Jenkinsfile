@@ -30,11 +30,12 @@ pipeline {
             steps {
                 sh '''
                     mkdir -p reports
+                    docker rm -f lint_run 2>/dev/null || true
                     docker create --name lint_run ${DEV_IMAGE} \
                         flake8 app.py calculator.py --output-file=/app/reports/flake8.txt
-                    docker start -a lint_run || true
-                    docker cp lint_run:/app/reports/flake8.txt reports/flake8.txt || true
-                    docker rm lint_run
+                    docker start -a lint_run 
+                    docker cp lint_run:/app/reports/flake8.txt reports/flake8.txt 
+                    docker rm lint_run  
                 '''
             }
         }
@@ -42,6 +43,7 @@ pipeline {
         stage('Unit tests') {
             steps {
                 sh '''
+                    docker rm -f unit_test_run 2>/dev/null || true 
                     docker create --name unit_test_run ${DEV_IMAGE} \
                         pytest --junitxml=/app/reports/test-results.xml
                     docker start -a unit_test_run
@@ -54,8 +56,11 @@ pipeline {
         stage('Coverage') {
             steps {
                 sh '''
+                    docker rm -f coverage_run 2>/dev/null || true
                     docker create --name coverage_run ${DEV_IMAGE} \
-                        pytest --cov=. --cov-report=xml:/app/reports/coverage.xml --cov-report=html:/app/reports/htmlcov
+                        pytest --cov=. --cov-fail-under=80 \
+                        --cov-report=xml:/app/reports/coverage.xml \
+                        --cov-report=html:/app/reports/htmlcov
                     docker start -a coverage_run
                     docker cp coverage_run:/app/reports/coverage.xml reports/coverage.xml
                     docker cp coverage_run:/app/reports/htmlcov reports/htmlcov
@@ -67,10 +72,11 @@ pipeline {
         stage('Security scan') {
             steps {
                 sh '''
+                    docker rm -f security_run 2>/dev/null || true
                     docker create --name security_run ${DEV_IMAGE} \
-                        bandit -r . -f sarif -o /app/reports/bandit.sarif
-                    docker start -a security_run || true
-                    docker cp security_run:/app/reports/bandit.sarif reports/bandit.sarif || true
+                        bandit -r . -ll -f sarif -o /app/reports/bandit.sarif
+                    docker start -a security_run 
+                    docker cp security_run:/app/reports/bandit.sarif reports/bandit.sarif 
                     docker rm security_run
                 '''
             }

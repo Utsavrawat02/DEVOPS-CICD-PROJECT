@@ -8,7 +8,7 @@ docker build -t calc-app:prod -f docker/Dockerfile.prod .
 2) For Production And Deployment
 docker build -t calc-app:dev -f docker/Dockerfile.prod .  
 
-Powershell Commands to run the Docker Tests
+<!-- Powershell Commands to run the Docker Tests -->
 
 docker run --rm calc-app:prod python app.py health                      
 
