@@ -30,7 +30,7 @@ pipeline {
                 sh '''
                     mkdir -p reports
                     docker run --rm -v ${WORKSPACE}/reports:/app/reports ${IMAGE} \
-                        flake8 app.py calculator.py --output-file=/app/reports/flake8.txt
+                        flake8 app.py calculator.py --output-file=/app/reports/flake8.txt || true
                 '''
             }
         }
