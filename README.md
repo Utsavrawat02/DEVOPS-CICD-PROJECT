@@ -16,10 +16,10 @@ docker run --rm `
  calc-app:dev `
  python app.py add 2 3
  
-docker run --rm `                  
--v "${PWD}/reports:/app/reports" `
-calc-app:dev `
-bandit -r . -f sarif -o ./reports/bandit.sarif
+docker run --rm `
+ -v "${PWD}/reports:/app/reports" `
+ calc-app:dev `
+ bandit -r . -f sarif -o ./reports/bandit.sarif
 
 docker run --rm `
  -v "${PWD}/reports:/app/reports" `

@@ -30,8 +30,11 @@ pipeline {
             steps {
                 sh '''
                     mkdir -p reports
-                    docker run --rm -v ${WORKSPACE}/reports:/app/reports ${DEV_IMAGE} \
-                        flake8 app.py calculator.py --output-file=/app/reports/flake8.txt || true
+                    docker create --name lint_run ${DEV_IMAGE} \
+                        flake8 app.py calculator.py --output-file=/app/reports/flake8.txt
+                    docker start -a lint_run || true
+                    docker cp lint_run:/app/reports/flake8.txt reports/flake8.txt || true
+                    docker rm lint_run
                 '''
             }
         }
@@ -39,8 +42,11 @@ pipeline {
         stage('Unit tests') {
             steps {
                 sh '''
-                    docker run --rm -v ${WORKSPACE}/reports:/app/reports ${DEV_IMAGE} \
+                    docker create --name unit_test_run ${DEV_IMAGE} \
                         pytest --junitxml=/app/reports/test-results.xml
+                    docker start -a unit_test_run
+                    docker cp unit_test_run:/app/reports/test-results.xml reports/test-results.xml
+                    docker rm unit_test_run
                 '''
             }
         }
@@ -48,8 +54,12 @@ pipeline {
         stage('Coverage') {
             steps {
                 sh '''
-                    docker run --rm -v ${WORKSPACE}/reports:/app/reports ${DEV_IMAGE} \
+                    docker create --name coverage_run ${DEV_IMAGE} \
                         pytest --cov=. --cov-report=xml:/app/reports/coverage.xml --cov-report=html:/app/reports/htmlcov
+                    docker start -a coverage_run
+                    docker cp coverage_run:/app/reports/coverage.xml reports/coverage.xml
+                    docker cp coverage_run:/app/reports/htmlcov reports/htmlcov
+                    docker rm coverage_run
                 '''
             }
         }
@@ -57,8 +67,11 @@ pipeline {
         stage('Security scan') {
             steps {
                 sh '''
-                    docker run --rm -v ${WORKSPACE}/reports:/app/reports ${DEV_IMAGE} \
-                        bandit -r . -f sarif -o /app/reports/bandit.sarif || true
+                    docker create --name security_run ${DEV_IMAGE} \
+                        bandit -r . -f sarif -o /app/reports/bandit.sarif
+                    docker start -a security_run || true
+                    docker cp security_run:/app/reports/bandit.sarif reports/bandit.sarif || true
+                    docker rm security_run
                 '''
             }
         }
