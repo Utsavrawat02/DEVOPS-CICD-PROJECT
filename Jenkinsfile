@@ -28,18 +28,24 @@ pipeline {
 
         stage('Lint') {
             steps {
-                warnError('Lint found issues') {
-                    sh '''#!/bin/bash
-                        mkdir -p reports
-                        docker rm -f lint_run 2>/dev/null || true
-                        docker create --name lint_run ${DEV_IMAGE} \
-                            flake8 app.py calculator.py
-                        docker start -a lint_run | tee reports/flake8.txt
-                        LINT_EXIT=${PIPESTATUS[0]}
-                        docker rm lint_run
-                        exit $LINT_EXIT
-                    '''
-                }
+                sh '''#!/bin/bash
+                    mkdir -p reports
+                    docker rm -f lint_run 2>/dev/null || true
+                    docker create --name lint_run ${DEV_IMAGE} \
+                        flake8 app.py calculator.py
+                    docker start -a lint_run | tee reports/flake8.txt
+                    LINT_EXIT=${PIPESTATUS[0]} 
+                    docker rm lint_run
+                    // exit $LINT_EXIT 
+
+                    if grep -qE ': F[0-9]+' reports/flake8.txt; then
+                        echo "Pyflakes (F-code) issues found — these may indicate real bugs. Failing the build."
+                        exit 1
+                    else
+                        echo "Only style issues found (or none) — not blocking the pipeline."
+                        exit 0
+                    fi
+                '''
             }
         }
 
