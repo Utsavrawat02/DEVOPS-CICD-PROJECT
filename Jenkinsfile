@@ -28,7 +28,7 @@ pipeline {
 
         stage('Lint') {
             steps {
-                sh '''
+                sh '''#!/bin/bash
                     mkdir -p reports
                     docker rm -f lint_run 2>/dev/null || true
                     docker create --name lint_run ${DEV_IMAGE} \

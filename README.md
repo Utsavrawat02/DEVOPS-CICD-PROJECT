@@ -45,3 +45,23 @@ docker run -d --name jenkins `
   -v jenkins_home:/var/jenkins_home `
   -v /var/run/docker.sock:/var/run/docker.sock `
   jenkins/jenkins:lts
+
+
+
+<!-- Git bash Commands -->
+docker run --rm devops-cicd-proj:test
+
+docker run --rm devops-cicd-proj:test python app.py add 4 6
+
+docker run --rm -v "$(pwd)/reports:/app/reports" devops-cicd-proj:test  python -m pytest tests/
+
+docker run --rm -v "$(pwd)/reports:/app/reports" devops-cicd-proj:test  python -m pytest --junitxml=/app/reports/test-results.xml tests/
+
+docker run --rm -v $(pwd)/reports:/app/reports devops-cicd-proj:test python -m pytest --cov=. --cov-report=xml:/app/reports/coverage.xml tests/
+
+
+docker run --rm -v "$(pwd)/reports:/app/reports" devops-cicd-proj:test flake8 app.py calculator.py > reports/linter.txt
+
+docker run --rm -v "$(pwd)/reports:/app/reports" devops-cicd-proj:test bandit -r . -f sarif -o ./reports/bandit.sarif
+
+docker run -d --name jenkins --network jenkins -p 8080:8080 -p 50000:50000 -v jenkins_home:/var/jenkins_home -v /var/run/docker.sock:/var/run/docker.sock -u root jenkins/jenkins:lts
