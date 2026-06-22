@@ -36,7 +36,7 @@ pipeline {
                     docker start -a lint_run | tee reports/flake8.txt
                     LINT_EXIT=${PIPESTATUS[0]} 
                     docker rm lint_run  
-                    exit $LINT_EXIT || true
+                    exit $LINT_EXIT 
                 '''
             }
         }
