@@ -19,6 +19,17 @@ def test_health(capsys):
     assert exit_code == 0
     assert "ok" in captured.out
 
+def test_invalid_args(capsys):
+    with patch(
+        "sys.argv",
+        ["app.py", "add", "k", "p"]
+    ):
+        exit_code = main()
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert "Arguments must be numeric" in captured.out
+
 def test_invalid_function(capsys):
     with patch(
         "sys.argv",
@@ -31,6 +42,22 @@ def test_invalid_function(capsys):
     assert exit_code == 1
     assert "not found" in captured.out
 
-def test_divide_by_zero():
-    with pytest.raises(ZeroDivisionError):
-        divide(10, 0)
+def test_divide_by_zero(capsys):
+    with patch("sys.argv", ["app.py", "div", "10", "0"]):
+        exit_code = main()
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert "Cannot divide by zero" in captured.out
+
+def test_invalid_health_args(capsys):
+    with patch(
+        "sys.argv",
+        ["app.py", "health", "2", "3"]
+    ):
+        exit_code = main()
+
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert "Usage: python main.py <function>" in captured.out
