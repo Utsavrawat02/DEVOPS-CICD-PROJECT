@@ -1,29 +1,34 @@
-
-FROM python:3.10-slim AS builder
-
+# ---------- Stage 1: runtime-only dependencies ----------
+FROM python:3.10-slim AS deps
 WORKDIR /app
 
 COPY requirements.txt .
+RUN python -m venv /opt/venv \
+    && /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# ---------- Stage 2: test (adds dev deps + source, runs pytest) ----------
+FROM deps AS test
+WORKDIR /app
+
 COPY requirements-dev.txt .
+RUN /opt/venv/bin/pip install --no-cache-dir -r requirements-dev.txt
 
-RUN pip install --no-cache-dir -r requirements.txt -r requirements-dev.txt
-
-COPY app.py calculator.py pytest.ini .
+COPY app.py calculator.py pytest.ini ./
 COPY tests/ ./tests/
 
+ENV PATH="/opt/venv/bin:$PATH"
 RUN python -m pytest tests/
 
-
-# Stage 2 - Runtime
-
-FROM python:3.10-slim
-
+# ---------- Stage 3: runtime image ----------
+FROM python:3.10-slim AS runtime
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Dependency-only venv — never had dev deps installed
+COPY --from=deps /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-COPY app.py .
-COPY calculator.py .
+# Pulling source from `test` forces the test stage (and pytest) to
+
+COPY --from=test /app/app.py /app/calculator.py ./
 
 CMD ["python", "app.py", "health"]

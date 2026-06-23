@@ -1,3 +1,4 @@
+# This is for a single stage build Not preferable for industrial level requirements
 FROM python:3.10-slim
 
 WORKDIR /app

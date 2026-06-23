@@ -16,7 +16,7 @@ pipeline {
 
         stage('Build dev/test image') {
             steps {
-                sh 'docker build -f Docker/Dockerfile.dev -t ${DEV_IMAGE} .'
+                sh 'docker build --target test -t ${DEV_IMAGE} -f Docker/Dockerfile.prod .'
             }
         }
 
@@ -99,7 +99,7 @@ pipeline {
 
         stage('Build production image') {
             steps {
-                sh 'docker build -f Docker/Dockerfile.prod -t ${PROD_IMAGE} .'
+                sh 'docker build --target runtime -t ${PROD_IMAGE} -f Docker/Dockerfile.prod .'
             }
         }
 
