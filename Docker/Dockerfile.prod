@@ -12,6 +12,7 @@ WORKDIR /app
 
 COPY requirements-dev.txt .
 RUN /opt/venv/bin/pip install --no-cache-dir -r requirements-dev.txt
+RUN mkdir -p reports
 
 COPY app.py calculator.py pytest.ini ./
 COPY tests/ ./tests/
